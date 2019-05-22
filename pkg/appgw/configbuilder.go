@@ -20,7 +20,7 @@ type ConfigBuilder interface {
 	HTTPListeners(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	RequestRoutingRules(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
 	HealthProbesCollection(ingressList [](*v1beta1.Ingress)) (ConfigBuilder, error)
-	Build() *network.ApplicationGatewayPropertiesFormat
+	Build() (*network.ApplicationGatewayPropertiesFormat, error)
 }
 
 type appGwConfigBuilder struct {
@@ -104,7 +104,22 @@ func generateFrontendListenerID(rule *v1beta1.IngressRule,
 }
 
 // Build generates the ApplicationGatewayPropertiesFormat for azure resource manager
-func (builder *appGwConfigBuilder) Build() *network.ApplicationGatewayPropertiesFormat {
-	config := builder.appGwConfig
-	return &config
+func (builder *appGwConfigBuilder) Build() (*network.ApplicationGatewayPropertiesFormat, error) {
+	return &builder.appGwConfig, builder.Validate()
+}
+
+// Validate runs all the validators on the config constructed to ensure it complies with App Gateway requirements.
+func (builder *appGwConfigBuilder) Validate() error {
+
+	validators := []func(config *network.ApplicationGatewayPropertiesFormat) error{
+		validateURLPathMaps,
+	}
+
+	for _, fn := range validators {
+		if err := fn(&builder.appGwConfig); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

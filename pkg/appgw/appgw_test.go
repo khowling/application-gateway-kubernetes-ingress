@@ -297,7 +297,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP Settings: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW := configBuilder.Build()
+		appGW, _ := configBuilder.Build()
 		// We will have a default HTTP setting that gets added, and an HTTP setting corresponding to port `backendPort`
 		Expect(len(*appGW.BackendHTTPSettingsCollection)).To(Equal(settings.backendHTTPSettingsCollection.total), "Did not find expected number of backend HTTP settings")
 
@@ -316,7 +316,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the backend address pools: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build()
 		// We will have a default backend address pool that gets added, and a backend pool corresponding to our service.
 		Expect(len(*appGW.BackendAddressPools)).To(Equal(settings.backendAddressPools.total), "Did not find expected number of backend address pool.")
 
@@ -329,7 +329,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the HTTP listeners: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build()
 		// Ingress allows listeners on port 80 or port 443. Therefore in this particular case we would have only a single listener
 		Expect(len(*appGW.HTTPListeners)).To(Equal(settings.hTTPListeners.total), "Did not find expected number of HTTP listeners")
 
@@ -342,7 +342,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 		Expect(err).Should(BeNil(), "Error in generating the routing rules: %v", err)
 
 		// Retrieve the implementation of the `ConfigBuilder` interface.
-		appGW = configBuilder.Build()
+		appGW, _ = configBuilder.Build()
 		Expect(len(*appGW.RequestRoutingRules)).To(Equal(settings.requestRoutingRules.total), "Did not find expected number of request routing rules")
 
 		if settings.requestRoutingRules.checker != nil {
