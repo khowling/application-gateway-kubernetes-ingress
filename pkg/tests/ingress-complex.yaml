@@ -8,17 +8,17 @@ metadata:
 spec:
   tls:
    - hosts:
-     - ws.contoso.com
+     - ws.mis.li
      secretName: testsecret-tls
   rules:
-    - host: ws.contoso.com
+    - host: ws.mis.li
       http:
         paths:
           - backend:
               serviceName: websocket-service
               servicePort: 80
 
-    - host: ftp.contoso.com
+    - host: x.mis.li
       http:
         paths:
           - path: /
@@ -26,7 +26,7 @@ spec:
               serviceName: websocket-service
               servicePort: 80
 
-    - host: www.contoso.com
+    - host: y.mis.li
       http:
         paths:
           - path: /store/*
