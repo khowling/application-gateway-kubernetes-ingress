@@ -34,6 +34,7 @@ func (builder *appGwConfigBuilder) getListeners(ingressList []*v1beta1.Ingress) 
 func (builder *appGwConfigBuilder) getListenerConfigs(ingressList []*v1beta1.Ingress) map[listenerIdentifier]listenerAzConfig {
 	allListeners := make(map[listenerIdentifier]listenerAzConfig)
 	for _, ingress := range ingressList {
+		glog.Infof("Ingress %s from namespace %s", ingress.Name, ingress.Namespace)
 		_, azListenerConfigs := builder.processIngressRules(ingress)
 		for listenerID, azConfig := range azListenerConfigs {
 			allListeners[listenerID] = azConfig

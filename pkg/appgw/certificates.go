@@ -3,6 +3,7 @@ package appgw
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/golang/glog"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -15,6 +16,7 @@ func (builder *appGwConfigBuilder) getSslCertificates(ingressList []*v1beta1.Ing
 	secretIDCertificateMap := make(map[secretIdentifier]*string)
 
 	for _, ingress := range ingressList {
+		glog.Infof("Ingress %s from namespace %s", ingress.Name, ingress.Namespace)
 		for k, v := range builder.getSecretToCertificateMap(ingress) {
 			secretIDCertificateMap[k] = v
 		}
