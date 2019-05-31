@@ -20,6 +20,10 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
+// Acceptable naming convention for property names:
+// The name must begin with a letter or number, end with a letter, number or underscore, and may contain
+// only letters, numbers, underscores, periods, or hyphens.
+
 type backendIdentifier struct {
 	serviceIdentifier
 	Ingress *v1beta1.Ingress
@@ -94,14 +98,14 @@ func getResourceKey(namespace, name string) string {
 	return formatPropName(fmt.Sprintf("%v/%v", namespace, name))
 }
 
-func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress string) string {
+func generateHTTPSettingsName(serviceName string, servicePort string, backendPortNo int32, ingress *v1beta1.Ingress) string {
 	namePrefix := "bp-"
-	return formatPropName(fmt.Sprintf("%s%s%v-%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, backendPortNo, ingress))
+	return formatPropName(fmt.Sprintf("%s%s-%s%v-%v-%v-%s", agPrefix, ingress.Namespace, namePrefix, serviceName, servicePort, backendPortNo, ingress.Name))
 }
 
-func generateProbeName(serviceName string, servicePort string, ingress string) string {
+func generateProbeName(serviceName string, servicePort string, ingress *v1beta1.Ingress) string {
 	namePrefix := "pb-"
-	return formatPropName(fmt.Sprintf("%s%s%v-%v-%s", agPrefix, namePrefix, serviceName, servicePort, ingress))
+	return formatPropName(fmt.Sprintf("%s%s-%s%v-%v-%s", agPrefix, ingress.Namespace, namePrefix, serviceName, servicePort, ingress.Name))
 }
 
 func generateAddressPoolName(serviceName string, servicePort string, backendPortNo int32) string {
@@ -124,14 +128,16 @@ func generateURLPathMapName(listenerID listenerIdentifier) string {
 	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateRequestRoutingRuleName(listenerID listenerIdentifier) string {
-	namePrefix := "rr-"
-	return formatPropName(fmt.Sprintf("%s%s%v%v", agPrefix, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
+// generateRequestRoutingRuleName generates the unique name for a Request Routing rule. The name will incorporate the
+// Kubernetes namespace of the Ingress from which it was created.
+func generateRequestRoutingRuleName(listenerID listenerIdentifier, ingress *v1beta1.Ingress) string {
+	namePrefix := "rr"
+	return formatPropName(fmt.Sprintf("%s%s-%s-%v%v", agPrefix, ingress.Namespace, namePrefix, formatHostname(listenerID.HostName), listenerID.FrontendPort))
 }
 
-func generateSSLRedirectConfigurationName(namespace, ingress string) string {
-	namePrefix := "sslr-"
-	return formatPropName(fmt.Sprintf("%s%s%s-%s", agPrefix, namePrefix, namespace, ingress))
+func generateSSLRedirectConfigurationName(ingress *v1beta1.Ingress) string {
+	namePrefix := "sslr"
+	return formatPropName(fmt.Sprintf("%s%s-%s-%s", agPrefix, ingress.Namespace, namePrefix, ingress.Name))
 }
 
 var defaultBackendHTTPSettingsName = fmt.Sprintf("%sdefaulthttpsetting", agPrefix)

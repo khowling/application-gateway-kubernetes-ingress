@@ -14,6 +14,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Test SSL Redirect Annotations", func() {
@@ -23,7 +24,13 @@ var _ = Describe("Test SSL Redirect Annotations", func() {
 		ResourceGroup:  testFixtureResourceGroup,
 		AppGwName:      testFixtureAppGwName,
 	}
-	configName := generateSSLRedirectConfigurationName(testFixturesNamespace, testFixturesName)
+	ingress := &v1beta1.Ingress{
+		ObjectMeta: v1.ObjectMeta{
+			Name: testFixturesName,
+			Namespace: testFixturesNamespace,
+		},
+	}
+	configName := generateSSLRedirectConfigurationName(ingress)
 	expectedRedirectID := agw.redirectConfigurationID(configName)
 
 	Context("test getSslRedirectConfigResourceReference", func() {

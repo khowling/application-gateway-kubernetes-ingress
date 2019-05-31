@@ -193,7 +193,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 	var urlPathMapFiltered []network.ApplicationGatewayURLPathMap
 	var requestRoutingRules []network.ApplicationGatewayRequestRoutingRule
 	for listenerID, urlPathMap := range urlPathMaps {
-		requestRoutingRuleName := generateRequestRoutingRuleName(listenerID)
+		requestRoutingRuleName := generateRequestRoutingRuleName(listenerID, )
 		httpListener := httpListenersMap[listenerID]
 		httpListenerSubResource := network.SubResource{ID: to.StringPtr(builder.appGwIdentifier.listenerID(*httpListener.Name))}
 		var rule network.ApplicationGatewayRequestRoutingRule
@@ -243,7 +243,7 @@ func (builder *appGwConfigBuilder) RequestRoutingRules(ingressList [](*v1beta1.I
 }
 
 func (builder *appGwConfigBuilder) getSslRedirectConfigResourceReference(ingress *v1beta1.Ingress) *network.SubResource {
-	configName := generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name)
+	configName := generateSSLRedirectConfigurationName(ingress)
 	sslRedirectConfigID := builder.appGwIdentifier.redirectConfigurationID(configName)
 	return resourceRef(sslRedirectConfigID)
 }

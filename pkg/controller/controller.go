@@ -147,6 +147,8 @@ func (c AppGwIngressController) Process(event QueuedEvent) error {
 
 	glog.Info("cache: Updated with latest applied config.")
 	c.updateCache(&appGw)
+	// configJSON, _ := c.dumpSanitizedJSON(&appGw)
+	// glog.V(5).Info(string(configJSON))
 
 	return nil
 }

@@ -152,7 +152,26 @@ func (builder *appGwConfigBuilder) BackendHTTPSettingsCollection(ingressList [](
 		}
 
 		builder.serviceBackendPairMap[backendID] = uniquePair
-		httpSettings := builder.generateHTTPSettings(backendID, uniquePair.BackendPort)
+
+		// httpSettings := builder.generateHTTPSettings(backendID, uniquePair.BackendPort)
+
+		probeName := builder.probesMap[backendID].Name
+		probeID := builder.appGwIdentifier.probeID(*probeName)
+		httpSettingsName := generateHTTPSettingsName(backendID.serviceFullName(), backendID.Backend.ServicePort.String(), uniquePair.BackendPort, backendID.Ingress)
+		glog.Infof("Created a new HTTP setting w/ name: %s\n", httpSettingsName)
+		httpSettingsPort := uniquePair.BackendPort
+		backendPathPrefix := to.StringPtr(annotations.BackendPathPrefix(backendID.Ingress))
+		httpSettings := network.ApplicationGatewayBackendHTTPSettings{
+			Etag: to.StringPtr("*"),
+			Name: &httpSettingsName,
+			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+				Protocol: network.HTTP,
+				Port:     &httpSettingsPort,
+				Path:     backendPathPrefix,
+				Probe:    resourceRef(probeID),
+			},
+		}
+		// other settings should come from annotations
 		httpSettingsCollection[*httpSettings.Name] = httpSettings
 		builder.backendHTTPSettingsMap[backendID] = &httpSettings
 	}

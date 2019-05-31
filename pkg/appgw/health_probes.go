@@ -81,7 +81,7 @@ func (builder *appGwConfigBuilder) generateHealthProbe(backendID backendIdentifi
 	}
 
 	probe := defaultProbe()
-	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress.Name))
+	probe.Name = to.StringPtr(generateProbeName(backendID.Path.Backend.ServiceName, backendID.Path.Backend.ServicePort.String(), backendID.Ingress))
 	if backendID.Rule != nil && len(backendID.Rule.Host) != 0 {
 		probe.Host = to.StringPtr(backendID.Rule.Host)
 	}

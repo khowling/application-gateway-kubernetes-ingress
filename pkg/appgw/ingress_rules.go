@@ -31,7 +31,7 @@ func (builder *appGwConfigBuilder) processIngressRules(ingress *v1beta1.Ingress)
 			felAzConfig := listenerAzConfig{
 				Protocol:                     network.HTTPS,
 				Secret:                       *secID,
-				SslRedirectConfigurationName: generateSSLRedirectConfigurationName(ingress.Namespace, ingress.Name),
+				SslRedirectConfigurationName: generateSSLRedirectConfigurationName(ingress),
 			}
 			azListenerConfigs[listenerIDHTTPS] = felAzConfig
 

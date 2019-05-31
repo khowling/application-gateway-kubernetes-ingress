@@ -7,6 +7,8 @@ package appgw
 
 import (
 	"fmt"
+	"k8s.io/api/extensions/v1beta1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +23,12 @@ var _ = Describe("Test string key generators", func() {
 		backendPortNo := int32(8989)
 		servicePort := testFixturesServicePort
 		serviceName := testFixturesServiceName
-		ingress := "INGR"
+		ingress := &v1beta1.Ingress{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      "INGR",
+				Namespace: testFixturesNamespace,
+			},
+		}
 		fel := listenerIdentifier{
 			FrontendPort: int32(9898),
 			HostName:     testFixturesHost,
@@ -35,13 +42,13 @@ var _ = Describe("Test string key generators", func() {
 
 		It("generateHTTPSettingsName returns expected key", func() {
 			actual := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
-			expected := agPrefix + "bp-" + testFixturesServiceName + "-" + testFixturesServicePort + "-8989-INGR"
+			expected := agPrefix + testFixturesNamespace + "-bp-" + testFixturesServiceName + "-" + testFixturesServicePort + "-8989-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
 		It("generateProbeName returns expected key", func() {
 			actual := generateProbeName(serviceName, servicePort, ingress)
-			expected := agPrefix + "pb-" + testFixturesServiceName + "-" + testFixturesServicePort + "-INGR"
+			expected := agPrefix + testFixturesNamespace + "-pb-" + testFixturesServiceName + "-" + testFixturesServicePort + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
 
@@ -76,7 +83,7 @@ var _ = Describe("Test string key generators", func() {
 		})
 
 		It("generateSSLRedirectConfigurationName returns expected key", func() {
-			actual := generateSSLRedirectConfigurationName(testFixturesNamespace, ingress)
+			actual := generateSSLRedirectConfigurationName(ingress)
 			expected := agPrefix + "sslr-" + testFixturesNamespace + "-INGR"
 			Expect(actual).To(Equal(expected))
 		})
@@ -105,18 +112,28 @@ var _ = Describe("Test string key generators", func() {
 			Expect(len(actual)).To(Equal(80))
 		})
 		It("generateProbeName preserves keys in 80 charaters of length or less", func() {
-			expected := agPrefix + "pb-xxxxxx-yyyyyy-zzzz"
+			expected := agPrefix + testFixturesNamespace + "-pb-xxxxxx-yyyyyy-zzzz"
 			serviceName := "xxxxxx"
 			servicePort := "yyyyyy"
-			ingress := "zzzz"
+			ingress := &v1beta1.Ingress{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "zzzz",
+					Namespace: testFixturesNamespace,
+				},
+			}
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(actual).To(Equal(expected))
 		})
 		It("generateProbeName relies on formatPropName and hashes long keys", func() {
-			expected := "pb-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-y-e13f2840e3eea9616f3f8cea3d3d5f02"
+			expected := "--namespace---pb-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-d12f351b25625ec500cad2ce96484aa7"
 			serviceName := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 			servicePort := "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-			ingress := "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+			ingress := &v1beta1.Ingress{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+					Namespace: testFixturesNamespace,
+				},
+			}
 			actual := generateProbeName(serviceName, servicePort, ingress)
 			Expect(len(actual)).To(Equal(80))
 			Expect(actual).To(Equal(expected), fmt.Sprintf("Expected %s; Got %s", expected, actual))
@@ -151,7 +168,11 @@ var _ = Describe("Test string key generators", func() {
 		serviceName := veryLongString
 		servicePort := veryLongString
 		backendPortNo := int32(8888)
-		ingress := veryLongString
+		ingress := &v1beta1.Ingress{ObjectMeta: v1.ObjectMeta{
+			Name:      veryLongString,
+			Namespace: testFixturesNamespace,
+		},
+		}
 		port := int32(88)
 		felID := listenerIdentifier{
 			FrontendPort: port,
@@ -166,7 +187,7 @@ var _ = Describe("Test string key generators", func() {
 			generateListenerName(felID),
 			generateURLPathMapName(felID),
 			generateRequestRoutingRuleName(felID),
-			generateSSLRedirectConfigurationName(namespace, ingress),
+			generateSSLRedirectConfigurationName(ingress),
 		}
 		It("ensure test is setup correctly", func() {
 			// ensure this is setup correctly

@@ -174,7 +174,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 
 	defaultHealthProbesChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name)
+		probeName := generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress)
 		probe := &network.ApplicationGatewayProbe{
 			Name: &probeName,
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
@@ -199,8 +199,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 	defaultBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 		appGwIdentifier := Identifier{}
 		expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
-		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+		probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
+		httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress)
 		httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 			Etag: to.StringPtr("*"),
 			Name: &httpSettingsName,
@@ -486,7 +486,7 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			EmptyBackendHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress.Name)
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), servicePort, ingress)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
@@ -706,8 +706,8 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			backendPrefixHTTPSettingsChecker := func(appGW *network.ApplicationGatewayPropertiesFormat) {
 				appGwIdentifier := Identifier{}
 				expectedBackend := &ingress.Spec.Rules[0].IngressRuleValue.HTTP.Paths[0].Backend
-				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress.Name))
-				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress.Name)
+				probeID := appGwIdentifier.probeID(generateProbeName(expectedBackend.ServiceName, expectedBackend.ServicePort.String(), ingress))
+				httpSettingsName := generateHTTPSettingsName(generateBackendID(ingress, nil, nil, expectedBackend).serviceFullName(), fmt.Sprintf("%d", servicePort), backendPort, ingress)
 				httpSettings := &network.ApplicationGatewayBackendHTTPSettings{
 					Etag: to.StringPtr("*"),
 					Name: &httpSettingsName,
@@ -771,7 +771,12 @@ var _ = Describe("Tests `appgw.ConfigBuilder`", func() {
 			serviceName := "test-cm-acme-http-solver-j7sxh"
 			servicePort := "8089"
 			var backendPortNo int32 = 8089
-			ingress := "cm-acme-http-solver-t8rnf"
+			ingress = &v1beta1.Ingress{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "cm-acme-http-solver-t8rnf",
+					Namespace: "--namespace--",
+				},
+			}
 
 			httpSettingsName := generateHTTPSettingsName(serviceName, servicePort, backendPortNo, ingress)
 			Ω(len(httpSettingsName)).Should(BeNumerically("<=", 80), "Expected App Gateway Backend Pool with 80 Character but got one with: %d", len(httpSettingsName))
