@@ -17,12 +17,12 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 )
 
-func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool) {
+func (c *appGwConfigBuilder) newBackendPoolMap() map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool {
 	defaultPool := defaultBackendAddressPool()
 	addressPools := map[string]*n.ApplicationGatewayBackendAddressPool{
 		*defaultPool.Name: defaultPool,
 	}
-	backendPoolMap := make(map[backendIdentifier](*n.ApplicationGatewayBackendAddressPool))
+	backendPoolMap := make(map[backendIdentifier]*n.ApplicationGatewayBackendAddressPool)
 	ingressList := c.k8sContext.GetHTTPIngressList()
 	_, _, serviceBackendPairMap, _ := c.getBackendsAndSettingsMap(ingressList)
 	for backendID, serviceBackendPair := range serviceBackendPairMap {

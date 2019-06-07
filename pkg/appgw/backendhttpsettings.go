@@ -23,25 +23,40 @@ const (
 	DefaultConnDrainTimeoutInSec = 30
 )
 
-func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interface{} {
+func (c *appGwConfigBuilder) newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interface{} {
 	backendIDs := make(map[backendIdentifier]interface{})
 	for _, ingress := range ingressList {
+		glog.V(5).Infof("Looking for backends in ingress=%s in namespace=%s", ingress.Name, ingress.Namespace)
 		if ingress.Spec.Backend != nil {
-			glog.Infof("Ingress spec has no backend. Adding a default.")
-			backendIDs[generateBackendID(ingress, nil, nil, ingress.Spec.Backend)] = nil
+			backendID := generateBackendID(ingress, nil, nil, ingress.Spec.Backend)
+			if _, exists, err := c.k8sContext.Caches.Service.GetByKey(backendID.serviceKey()); !exists {
+				glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct Kubernetes YAML", ingress.Namespace, ingress.Name, backendID.serviceKey())
+				continue
+			} else if err != nil {
+				glog.Error("Error fetching Service from cache", err)
+			}
+			glog.Info("Ingress spec has no backend. Adding default backend:", backendID.serviceKey(), backendID.serviceFullName())
+			backendIDs[backendID] = nil
 		}
 		for ruleIdx := range ingress.Spec.Rules {
 			rule := &ingress.Spec.Rules[ruleIdx]
-			glog.Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
+			glog.V(5).Infof("Working on ingress rule #%d: host='%s'", ruleIdx+1, rule.Host)
 			if rule.HTTP == nil {
 				// skip no http rule
-				glog.Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
+				glog.V(5).Infof("Skip rule #%d for host '%s' - it has no HTTP rules.", ruleIdx+1, rule.Host)
 				continue
 			}
 			for pathIdx := range rule.HTTP.Paths {
 				path := &rule.HTTP.Paths[pathIdx]
-				glog.Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
-				backendIDs[generateBackendID(ingress, rule, path, &path.Backend)] = nil
+				glog.V(5).Infof("Working on path #%d: '%s'", pathIdx+1, path.Path)
+				backendID := generateBackendID(ingress, rule, path, &path.Backend)
+				if _, exists, err := c.k8sContext.Caches.Service.GetByKey(backendID.serviceKey()); !exists {
+					glog.Errorf("Ingress %s/%s references non existent Service %s. Please correct Kubernetes YAML", ingress.Namespace, ingress.Name, backendID.serviceKey())
+				} else if err != nil {
+					glog.Error("Error fetching Service from cache", err)
+				}
+				glog.Info("Adding backend:", backendID.serviceKey(), backendID.serviceFullName())
+				backendIDs[backendID] = nil
 			}
 		}
 	}
@@ -49,7 +64,7 @@ func newBackendIds(ingressList []*v1beta1.Ingress) map[backendIdentifier]interfa
 }
 
 func (c *appGwConfigBuilder) getBackendsAndSettingsMap(ingressList []*v1beta1.Ingress) (*[]network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings, map[backendIdentifier]serviceBackendPortPair, error) {
-	backendIDs := newBackendIds(ingressList)
+	backendIDs := c.newBackendIds(ingressList)
 	serviceBackendPairsMap := make(map[backendIdentifier]map[serviceBackendPortPair]interface{})
 	backendHTTPSettingsMap := make(map[backendIdentifier]*network.ApplicationGatewayBackendHTTPSettings)
 	finalServiceBackendPairMap := make(map[backendIdentifier]serviceBackendPortPair)

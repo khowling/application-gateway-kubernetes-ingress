@@ -21,7 +21,7 @@ import (
 
 func (c *appGwConfigBuilder) newProbesMap(ingressList []*v1beta1.Ingress) (map[string]network.ApplicationGatewayProbe, map[backendIdentifier](*network.ApplicationGatewayProbe)) {
 	healthProbeCollection := make(map[string]network.ApplicationGatewayProbe)
-	backendIDs := newBackendIds(ingressList)
+	backendIDs := c.newBackendIds(ingressList)
 	probesMap := make(map[backendIdentifier]*network.ApplicationGatewayProbe)
 	defaultProbe := defaultProbe()
 
